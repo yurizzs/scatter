@@ -19,12 +19,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleNonFunctionalOption = (title: string) => {
-    showToast('Demo Settings', `${title} settings are disabled in Demo Mode.`, 'info');
+    showToast('Settings', `${title} settings are disabled.`, 'info');
   };
 
   const handleConfirmLogout = () => {
     setShowLogoutModal(false);
-    showToast('Demo Logout', 'You have exited the demo session.', 'info');
+    showToast('Logout', 'You have exited the session.', 'info');
   };
 
   return (
@@ -33,8 +33,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         {/* Header Bar */}
         <View style={styles.headerBar}>
           <Text style={styles.screenTitle}>MY PROFILE</Text>
-          <View style={styles.demoBadge}>
-            <Text style={styles.demoBadgeText}>DEMO MODE</Text>
+          <View style={styles.vipBadge}>
+            <Text style={styles.vipBadgeText}>VIP MEMBER</Text>
           </View>
         </View>
 
@@ -42,7 +42,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <View style={styles.profileHeaderCard}>
           <View style={styles.avatarWrap}>
             <View style={styles.avatarCircle}>
-              <Ionicons name="person" size={42} color={CasinoColors.goldPrimary} />
+              <Ionicons name="person" size={32} color={CasinoColors.goldPrimary} />
             </View>
             <View style={styles.crownBadge}>
               <Ionicons name="trophy-sharp" size={12} color={CasinoColors.bgDarkest} />
@@ -53,15 +53,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
           <View style={styles.statusRow}>
             <View style={styles.statusDot} />
-            <Text style={styles.statusText}>Demo Account</Text>
+            <Text style={styles.statusText}>Verified Account</Text>
           </View>
         </View>
 
-        {/* Prominent Demo Balance Section */}
+        {/* Prominent Balance Section */}
         <View style={styles.balanceCard}>
-          <Text style={styles.balanceHeaderLabel}>DEMO BALANCE</Text>
+          <Text style={styles.balanceHeaderLabel}>TOTAL BALANCE</Text>
           <Text style={styles.balanceValueText}>{formattedBalance}</Text>
-          <Text style={styles.balanceNotice}>Fictional demo coins for testing & entertainment</Text>
+          <Text style={styles.balanceNotice}>Available coins for playing & entertainment</Text>
 
           {/* Action Buttons: Deposit & Withdraw */}
           <View style={styles.actionRow}>
@@ -70,7 +70,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               onPress={onOpenDeposit}
               activeOpacity={0.85}
             >
-              <Ionicons name="arrow-down-circle-sharp" size={20} color={CasinoColors.bgDarkest} />
+              <Ionicons name="arrow-down-circle-sharp" size={16} color={CasinoColors.bgDarkest} />
               <Text style={styles.depositButtonText}>DEPOSIT</Text>
             </TouchableOpacity>
 
@@ -79,15 +79,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               onPress={onOpenWithdraw}
               activeOpacity={0.85}
             >
-              <Ionicons name="arrow-up-circle-sharp" size={20} color={CasinoColors.goldPrimary} />
+              <Ionicons name="arrow-up-circle-sharp" size={16} color={CasinoColors.goldPrimary} />
               <Text style={styles.withdrawButtonText}>WITHDRAW</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Recent Demo Activity Log */}
+        {/* Recent Activity Log */}
         <View style={styles.activityCard}>
-          <Text style={styles.sectionHeaderTitle}>RECENT DEMO ACTIVITY</Text>
+          <Text style={styles.sectionHeaderTitle}>RECENT ACTIVITY</Text>
 
           {transactions.length === 0 ? (
             <Text style={styles.emptyText}>No activity recorded yet.</Text>
@@ -113,7 +113,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                           ? 'arrow-up-sharp'
                           : 'sparkles-sharp'
                       }
-                      size={16}
+                      size={14}
                       color={
                         item.type === 'deposit'
                           ? CasinoColors.emeraldAccent
@@ -152,10 +152,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             onPress={() => handleNonFunctionalOption('Accounts')}
           >
             <View style={styles.optionLeft}>
-              <Ionicons name="key-sharp" size={20} color={CasinoColors.goldSecondary} />
+              <Ionicons name="key-sharp" size={16} color={CasinoColors.goldSecondary} />
               <Text style={styles.optionText}>Accounts</Text>
             </View>
-            <Ionicons name="chevron-forward-sharp" size={18} color={CasinoColors.textMuted} />
+            <Ionicons name="chevron-forward-sharp" size={14} color={CasinoColors.textMuted} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -163,10 +163,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             onPress={() => handleNonFunctionalOption('Security')}
           >
             <View style={styles.optionLeft}>
-              <Ionicons name="shield-checkmark-sharp" size={20} color={CasinoColors.goldSecondary} />
+              <Ionicons name="shield-checkmark-sharp" size={16} color={CasinoColors.goldSecondary} />
               <Text style={styles.optionText}>Security</Text>
             </View>
-            <Ionicons name="chevron-forward-sharp" size={18} color={CasinoColors.textMuted} />
+            <Ionicons name="chevron-forward-sharp" size={14} color={CasinoColors.textMuted} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -174,10 +174,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             onPress={() => setShowLogoutModal(true)}
           >
             <View style={styles.optionLeft}>
-              <Ionicons name="log-out-sharp" size={20} color={CasinoColors.error} />
+              <Ionicons name="log-out-sharp" size={16} color={CasinoColors.error} />
               <Text style={[styles.optionText, { color: CasinoColors.error }]}>Logout</Text>
             </View>
-            <Ionicons name="chevron-forward-sharp" size={18} color={CasinoColors.textMuted} />
+            <Ionicons name="chevron-forward-sharp" size={14} color={CasinoColors.textMuted} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     color: CasinoColors.goldPrimary,
     letterSpacing: 2,
   },
-  demoBadge: {
+  vipBadge: {
     backgroundColor: 'rgba(212, 175, 55, 0.15)',
     borderWidth: 1,
     borderColor: CasinoColors.borderGold,
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
   },
-  demoBadgeText: {
+  vipBadgeText: {
     color: CasinoColors.goldLight,
     fontSize: 9.5,
     fontWeight: '800',

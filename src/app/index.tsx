@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { SplashScreenComponent } from '@/components/SplashScreen';
 import { BottomNavigation, NavTab } from '@/components/BottomNavigation';
 import { NotificationToast } from '@/components/NotificationToast';
+import { WinModal } from '@/components/WinModal';
+import { LoseModal } from '@/components/LoseModal';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { LuckySpinScreen } from '@/screens/LuckySpinScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
@@ -16,6 +18,9 @@ export default function AppMain() {
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [subScreen, setSubScreen] = useState<SubScreen>(null);
+  const { width } = useWindowDimensions();
+
+  const isWide = width >= 640;
 
   if (showSplash) {
     return <SplashScreenComponent onFinish={() => setShowSplash(false)} />;
@@ -62,30 +67,58 @@ export default function AppMain() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Floating Animated Toast Notifications */}
-      <NotificationToast />
+    <View style={styles.outerContainer}>
+      <View style={[styles.appShell, isWide && styles.appShellWide]}>
+        {/* Floating Animated Toast Notifications */}
+        <NotificationToast />
 
-      {/* Main Content Area */}
-      <View style={styles.contentArea}>{renderCurrentScreen()}</View>
+        {/* Casino Win Celebration Modal with Spinning Lights */}
+        <WinModal />
 
-      {/* Fixed Bottom Navigation Bar (Hidden when inside full-page subScreens like deposit/withdraw/spin) */}
-      {subScreen === null && (
-        <BottomNavigation
-          currentTab={activeTab}
-          onSelectTab={(tab) => {
-            setActiveTab(tab);
-          }}
-        />
-      )}
+        {/* Casino Loss Modal with Spinning Red Lights */}
+        <LoseModal />
+
+        {/* Main Content Area */}
+        <View style={styles.contentArea}>{renderCurrentScreen()}</View>
+
+        {/* Fixed Bottom Navigation Bar (Hidden when inside full-page subScreens like deposit/withdraw/spin) */}
+        {subScreen === null && (
+          <BottomNavigation
+            currentTab={activeTab}
+            onSelectTab={(tab) => {
+              setActiveTab(tab);
+            }}
+          />
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  outerContainer: {
     flex: 1,
+    backgroundColor: '#030C09', // Dark ambient surrounding background for web/tablet
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  appShell: {
+    flex: 1,
+    width: '100%',
     backgroundColor: CasinoColors.bgDarkest,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  appShellWide: {
+    maxWidth: 600,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: CasinoColors.borderGold,
+    shadowColor: CasinoColors.goldPrimary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 12,
   },
   contentArea: {
     flex: 1,

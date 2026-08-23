@@ -14,17 +14,23 @@ interface DepositScreenProps {
 
 export const DepositScreen: React.FC<DepositScreenProps> = ({ onBack }) => {
   const { deposit, showToast } = useBalance();
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(100);
   const [noPromoChecked, setNoPromoChecked] = useState<boolean>(true);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(PAYMENT_METHODS[0]);
 
-  const handleDepositSubmit = () => {
+  const handleDepositSubmit = async () => {
     if (selectedAmount === null) {
       showToast('No Amount Selected', 'Please select a deposit amount.', 'error');
       return;
     }
 
-    const success = deposit(selectedAmount, selectedMethod.name);
+    if (selectedMethod.name === 'Cash G') {
+      const success = await deposit(selectedAmount, 'Cash G');
+      if (success) onBack();
+      return;
+    }
+
+    const success = await deposit(selectedAmount, selectedMethod.name);
     if (success) {
       onBack();
     }
@@ -36,7 +42,7 @@ export const DepositScreen: React.FC<DepositScreenProps> = ({ onBack }) => {
         {/* Navigation Bar */}
         <View style={styles.navBar}>
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
-            <Ionicons name="arrow-back" size={22} color={CasinoColors.goldPrimary} />
+            <Ionicons name="arrow-back" size={18} color={CasinoColors.goldPrimary} />
             <Text style={styles.backText}>BACK</Text>
           </TouchableOpacity>
           <Text style={styles.screenTitle}>DEPOSIT</Text>
@@ -49,7 +55,7 @@ export const DepositScreen: React.FC<DepositScreenProps> = ({ onBack }) => {
           <Text style={styles.cardAmountValue}>
             {selectedAmount !== null ? `₱${selectedAmount.toLocaleString()}` : 'None Selected'}
           </Text>
-          <Text style={styles.demoNoticeText}>Fictional Demo Deposit (₱200 - ₱10,000)</Text>
+          <Text style={styles.noticeText}>Deposit Amount Range (₱100 - ₱10,000)</Text>
         </View>
 
         {/* Amount Selector Buttons Grid */}
@@ -91,7 +97,7 @@ export const DepositScreen: React.FC<DepositScreenProps> = ({ onBack }) => {
             activeOpacity={0.85}
           >
             <Text style={styles.depositSubmitText}>DEPOSIT</Text>
-            <Ionicons name="arrow-forward" size={18} color={CasinoColors.bgDarkest} style={{ marginLeft: 6 }} />
+            <Ionicons name="arrow-forward" size={15} color={CasinoColors.bgDarkest} style={{ marginLeft: 6 }} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -165,7 +171,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 4,
   },
-  demoNoticeText: {
+  noticeText: {
     fontSize: 11,
     color: CasinoColors.textSecondary,
   },

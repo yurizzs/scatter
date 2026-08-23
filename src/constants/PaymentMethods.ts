@@ -12,7 +12,7 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
     name: 'Cash G',
     iconName: 'wallet',
     color: '#007DFE',
-    badgeText: 'Instant Demo',
+    badgeText: 'Instant',
   },
   {
     id: 'ayam',
@@ -30,4 +30,4 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
   },
 ];
 
-export const PRESET_AMOUNTS = [200, 500, 1000, 2000, 3000, 5000, 10000];
+export const PRESET_AMOUNTS = [100, 200, 500, 1000, 2000, 5000, 10000];

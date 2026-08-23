@@ -63,9 +63,9 @@ export const WinResultDisplay: React.FC<WinResultDisplayProps> = ({ result, betA
       {winType === 'JACKPOT' && (
         <View style={styles.centerContent}>
           <View style={styles.headerRow}>
-            <Ionicons name="trophy" size={26} color={CasinoColors.goldPrimary} />
+            <Ionicons name="trophy" size={20} color={CasinoColors.goldPrimary} />
             <Text style={styles.titleJackpot}>🎉 JACKPOT!</Text>
-            <Ionicons name="trophy" size={26} color={CasinoColors.goldPrimary} />
+            <Ionicons name="trophy" size={20} color={CasinoColors.goldPrimary} />
           </View>
 
           <Text style={styles.matchSubText}>4 MATCHES ({matchedSymbol?.emoji || '⭐'})</Text>
@@ -77,9 +77,9 @@ export const WinResultDisplay: React.FC<WinResultDisplayProps> = ({ result, betA
       {winType === 'WIN' && (
         <View style={styles.centerContent}>
           <View style={styles.headerRow}>
-            <Ionicons name="sparkles" size={22} color={CasinoColors.goldPrimary} />
+            <Ionicons name="sparkles" size={16} color={CasinoColors.goldPrimary} />
             <Text style={styles.titleWin}>🎉 YOU WIN!</Text>
-            <Ionicons name="sparkles" size={22} color={CasinoColors.goldPrimary} />
+            <Ionicons name="sparkles" size={16} color={CasinoColors.goldPrimary} />
           </View>
 
           <Text style={styles.matchSubText}>3 MATCHES ({matchedSymbol?.emoji || '🍒'})</Text>
@@ -96,7 +96,7 @@ export const WinResultDisplay: React.FC<WinResultDisplayProps> = ({ result, betA
             {matchesCount === 2 ? `2 MATCHES (${matchedSymbol?.emoji || '⭐'})` : 'NO MATCH'}
           </Text>
 
-          <Text style={styles.loseText}>You lost your ₱{betAmount.toLocaleString()} demo bet.</Text>
+          <Text style={styles.loseText}>You lost your ₱{betAmount.toLocaleString()} bet.</Text>
         </View>
       )}
     </Animated.View>

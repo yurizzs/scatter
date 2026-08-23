@@ -110,8 +110,8 @@ export const SplashScreenComponent: React.FC<SplashScreenProps> = ({ onFinish })
         </View>
         <Text style={styles.subTitle}>LUXURY SLOTS & SPINS</Text>
 
-        <View style={styles.demoBadge}>
-          <Text style={styles.demoBadgeText}>PROTOTYPE DEMO GAME</Text>
+        <View style={styles.protoBadge}>
+          <Text style={styles.protoBadgeText}>PROTOTYPE EDITION</Text>
         </View>
       </Animated.View>
 
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
     marginBottom: 28,
   },
-  demoBadge: {
+  protoBadge: {
     backgroundColor: 'rgba(212, 175, 55, 0.15)',
     borderWidth: 1,
     borderColor: CasinoColors.borderGold,
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
   },
-  demoBadgeText: {
+  protoBadgeText: {
     color: CasinoColors.goldLight,
     fontSize: 11,
     fontWeight: '800',

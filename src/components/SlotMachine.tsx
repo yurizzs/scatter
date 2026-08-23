@@ -1,73 +1,66 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SlotReel } from './SlotReel';
 import { SlotSymbol, SLOT_SYMBOLS, SlotResult, evaluateSlotSpin } from '@/constants/SlotData';
+import { PatternOutcome, generateReelSymbolsForOutcome } from '@/constants/SpinPattern';
 import { CasinoColors } from '@/constants/CasinoTheme';
 import { Ionicons } from '@expo/vector-icons';
 
-const { width } = Dimensions.get('window');
-const MACHINE_WIDTH = Math.min(width * 0.92, 360);
+const SPIN_DURATION_MS = 2000;
+const INITIAL_REELS = [
+  SLOT_SYMBOLS[4],
+  SLOT_SYMBOLS[4],
+  SLOT_SYMBOLS[4],
+  SLOT_SYMBOLS[4],
+];
 
 interface SlotMachineProps {
   isSpinning: boolean;
   betAmount: number;
+  targetOutcome?: PatternOutcome;
   onSpinFinish: (result: SlotResult) => void;
 }
 
 export const SlotMachine: React.FC<SlotMachineProps> = ({
   isSpinning,
   betAmount,
+  targetOutcome = 'WIN',
   onSpinFinish,
 }) => {
-  // 4 Reel target symbols
-  const [currentReels, setCurrentReels] = useState<SlotSymbol[]>([
-    SLOT_SYMBOLS[4], // Star
-    SLOT_SYMBOLS[4], // Star
-    SLOT_SYMBOLS[4], // Star
-    SLOT_SYMBOLS[4], // Star
-  ]);
+  const { width } = useWindowDimensions();
+  const machineWidth = Math.min(width * 0.88, 360);
 
+  const [currentReels, setCurrentReels] = useState<SlotSymbol[]>(INITIAL_REELS);
   const [highlightedIndices, setHighlightedIndices] = useState<number[]>([]);
+  const [lightTick, setLightTick] = useState(0);
   const stoppedCount = useRef(0);
   const spinResultRef = useRef<SlotResult | null>(null);
+  const pendingReelsRef = useRef<SlotSymbol[]>(INITIAL_REELS);
 
-  // Staggered stop delays per reel completing right at 2.0 seconds
-  const stopDelays = [1700, 1800, 1900, 2000];
+  const stopDelays = [SPIN_DURATION_MS, SPIN_DURATION_MS, SPIN_DURATION_MS, SPIN_DURATION_MS];
+
+  useEffect(() => {
+    // 120ms rapid neon flickering light strobe
+    const timer = setInterval(() => {
+      setLightTick((t) => (t + 1) % 4);
+    }, 120);
+    return () => clearInterval(timer);
+  }, []);
+
+  if (isSpinning && !spinResultRef.current) {
+    const picked = generateReelSymbolsForOutcome(targetOutcome);
+    pendingReelsRef.current = picked;
+    spinResultRef.current = evaluateSlotSpin(picked, betAmount);
+    stoppedCount.current = 0;
+  }
 
   useEffect(() => {
     if (isSpinning) {
-      stoppedCount.current = 0;
       setHighlightedIndices([]);
-
-      // Generate target combination upfront
-      const randVal = Math.random();
-      let picked: SlotSymbol[] = [];
-
-      if (randVal < 0.25) {
-        // 25% chance: 4 matching symbols (JACKPOT 10x)
-        const jackpotSym = SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
-        picked = [jackpotSym, jackpotSym, jackpotSym, jackpotSym];
-      } else if (randVal < 0.60) {
-        // 35% chance: 3 matching symbols (WIN 3x)
-        const winSym = SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
-        const otherSym = SLOT_SYMBOLS[(SLOT_SYMBOLS.indexOf(winSym) + 1) % SLOT_SYMBOLS.length];
-        picked = [winSym, winSym, winSym, otherSym];
-      } else if (randVal < 0.85) {
-        // 25% chance: 2 matching symbols (NO MATCH 0x)
-        const winSym = SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
-        const o1 = SLOT_SYMBOLS[(SLOT_SYMBOLS.indexOf(winSym) + 1) % SLOT_SYMBOLS.length];
-        const o2 = SLOT_SYMBOLS[(SLOT_SYMBOLS.indexOf(winSym) + 2) % SLOT_SYMBOLS.length];
-        picked = [winSym, winSym, o1, o2];
-      } else {
-        // 15% chance: 0 matching symbols (NO MATCH 0x)
-        const shuffled = [...SLOT_SYMBOLS].sort(() => 0.5 - Math.random());
-        picked = shuffled.slice(0, 4);
-      }
-
-      setCurrentReels(picked);
-      spinResultRef.current = evaluateSlotSpin(picked, betAmount);
+    } else {
+      spinResultRef.current = null;
     }
-  }, [isSpinning, betAmount]);
+  }, [isSpinning]);
 
   const handleReelStop = (index: number) => {
     stoppedCount.current += 1;
@@ -75,11 +68,14 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
     // All 4 reels stopped at ~2 seconds
     if (stoppedCount.current === 4 && spinResultRef.current) {
       const res = spinResultRef.current;
+      const finalReels = pendingReelsRef.current;
+
+      setCurrentReels(finalReels);
 
       // Highlight winning reel indices (3+ matches)
       if (res.matchesCount >= 3 && res.matchedSymbol) {
         const matches: number[] = [];
-        currentReels.forEach((s, idx) => {
+        finalReels.forEach((s, idx) => {
           if (s.id === res.matchedSymbol?.id) {
             matches.push(idx);
           }
@@ -87,12 +83,17 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
         setHighlightedIndices(matches);
       }
 
-      onSpinFinish(res);
+      requestAnimationFrame(() => {
+        onSpinFinish(res);
+      });
     }
   };
 
+  const visibleReels = isSpinning ? pendingReelsRef.current : currentReels;
+  const NEON_LIGHT_COLORS = ['#FFD700', '#00E5FF', '#00FF99', '#FF007F'];
+
   return (
-    <View style={styles.machineFrame}>
+    <View style={[styles.machineFrame, { width: machineWidth }]}>
       {/* Top Header Marquee */}
       <View style={styles.marqueeHeader}>
         <Ionicons name="sparkles" size={16} color={CasinoColors.goldPrimary} />
@@ -100,22 +101,34 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
         <Ionicons name="sparkles" size={16} color={CasinoColors.goldPrimary} />
       </View>
 
-      {/* Decorative Lights Bar */}
+      {/* Decorative Rapid Flickering Neon Lights Bar */}
       <View style={styles.lightsRow}>
-        {[...Array(9)].map((_, i) => (
-          <View
-            key={`light-${i}`}
-            style={[
-              styles.lightDot,
-              isSpinning && i % 2 === 0 ? styles.lightDotActive : styles.lightDotInactive,
-            ]}
-          />
-        ))}
+        {[...Array(9)].map((_, i) => {
+          const isActive = (i + lightTick) % 2 === 0;
+          const color = NEON_LIGHT_COLORS[(i + lightTick) % NEON_LIGHT_COLORS.length];
+          return (
+            <View
+              key={`light-${i}`}
+              style={[
+                styles.lightDot,
+                isActive
+                  ? {
+                      backgroundColor: color,
+                      shadowColor: color,
+                      shadowRadius: 8,
+                      shadowOpacity: 1,
+                      elevation: 6,
+                    }
+                  : styles.lightDotInactive,
+              ]}
+            />
+          );
+        })}
       </View>
 
       {/* Main 4-Column Reels Container */}
       <View style={styles.reelsContainer}>
-        {currentReels.map((symbol, idx) => (
+        {visibleReels.map((symbol, idx) => (
           <React.Fragment key={`reel-col-${idx}`}>
             <SlotReel
               reelIndex={idx}
@@ -142,7 +155,6 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
 
 const styles = StyleSheet.create({
   machineFrame: {
-    width: MACHINE_WIDTH,
     backgroundColor: CasinoColors.bgCardElevated,
     borderRadius: 22,
     borderWidth: 4,
@@ -150,10 +162,10 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     shadowColor: CasinoColors.goldPrimary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.6,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.95,
+    shadowRadius: 24,
+    elevation: 16,
   },
   marqueeHeader: {
     flexDirection: 'row',

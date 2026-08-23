@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, Animated, Easing } from 'react-native';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { SlotSymbol, SLOT_SYMBOLS } from '@/constants/SlotData';
 import { CasinoColors } from '@/constants/CasinoTheme';
 
@@ -23,36 +23,80 @@ export const SlotReel: React.FC<SlotReelProps> = ({
   isHighlighted = false,
   onStop,
 }) => {
-  const translateY = useRef(new Animated.Value(0)).current;
+  const stopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const spinTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onStopRef = useRef(onStop);
+  const [spinFrame, setSpinFrame] = useState(0);
 
-  // Build a long strip of symbols for continuous vertical scrolling animation
-  const stripSymbols = useRef<SlotSymbol[]>([]);
-  if (stripSymbols.current.length === 0) {
+  const spinningSymbols = useMemo(() => {
     const arr: SlotSymbol[] = [];
-    // Generate 35 continuous symbols
-    for (let i = 0; i < 35; i++) {
-      const randSym = SLOT_SYMBOLS[i % SLOT_SYMBOLS.length];
-      arr.push(randSym);
+
+    for (let i = 0; i < SLOT_SYMBOLS.length; i++) {
+      arr.push(SLOT_SYMBOLS[(i + reelIndex * 2) % SLOT_SYMBOLS.length]);
     }
-    stripSymbols.current = arr;
-  }
+
+    return arr;
+  }, [reelIndex]);
+
+  const stripSymbols = useMemo(() => {
+    const arr: SlotSymbol[] = [];
+    const targetIdx = SLOT_SYMBOLS.findIndex((s) => s.id === targetSymbol.id);
+    const safeTargetIdx = targetIdx >= 0 ? targetIdx : 0;
+    const prevIdx = (safeTargetIdx + 1) % SLOT_SYMBOLS.length;
+    const nextIdx = (safeTargetIdx + 2) % SLOT_SYMBOLS.length;
+
+    arr.push(SLOT_SYMBOLS[prevIdx]); // Top row
+    arr.push(targetSymbol);          // Center payline row
+    arr.push(SLOT_SYMBOLS[nextIdx]); // Bottom row
+
+    return arr;
+  }, [targetSymbol, reelIndex]);
+
+  const visibleSpinSymbols = useMemo(() => {
+    const base = spinFrame % spinningSymbols.length;
+
+    return [
+      spinningSymbols[base],
+      spinningSymbols[(base + 1) % spinningSymbols.length],
+      spinningSymbols[(base + 2) % spinningSymbols.length],
+    ];
+  }, [spinFrame, spinningSymbols]);
+
+  useEffect(() => {
+    onStopRef.current = onStop;
+  }, [onStop]);
 
   useEffect(() => {
     if (isSpinning) {
-      // Total distance to scroll vertically over the animation duration
-      const totalDistance = SYMBOL_HEIGHT * (stripSymbols.current.length - 3);
-
-      translateY.setValue(0);
-      Animated.timing(translateY, {
-        toValue: -totalDistance,
-        duration: stopDelayMs,
-        // Smooth bezier easing: fast continuous spin -> smooth deceleration at the end
-        easing: Easing.bezier(0.2, 0.8, 0.2, 1),
-        useNativeDriver: true,
-      }).start(() => {
-        onStop();
-      });
+      setSpinFrame(0);
+      spinTimer.current = setInterval(() => {
+        setSpinFrame((frame) => frame + 1);
+      }, 58);
+      stopTimer.current = setTimeout(() => {
+        onStopRef.current();
+      }, stopDelayMs);
+    } else {
+      if (spinTimer.current) {
+        clearInterval(spinTimer.current);
+        spinTimer.current = null;
+      }
+      if (stopTimer.current) {
+        clearTimeout(stopTimer.current);
+        stopTimer.current = null;
+      }
+      setSpinFrame(0);
     }
+
+    return () => {
+      if (spinTimer.current) {
+        clearInterval(spinTimer.current);
+        spinTimer.current = null;
+      }
+      if (stopTimer.current) {
+        clearTimeout(stopTimer.current);
+        stopTimer.current = null;
+      }
+    };
   }, [isSpinning, stopDelayMs]);
 
   return (
@@ -61,21 +105,14 @@ export const SlotReel: React.FC<SlotReelProps> = ({
       <View style={[styles.centerPaylineOverlay, isHighlighted && styles.centerPaylineGold]} />
 
       {isSpinning ? (
-        /* Continuous Vertical Spinning Strip */
-        <Animated.View
-          style={[
-            styles.reelStrip,
-            {
-              transform: [{ translateY }],
-            },
-          ]}
-        >
-          {stripSymbols.current.map((sym, idx) => (
+        /* Continuous visible spin: keep all rows filled until the final result replaces them */
+        <View style={styles.reelStrip}>
+          {visibleSpinSymbols.map((sym: SlotSymbol, idx: number) => (
             <View key={`sym-${reelIndex}-${idx}`} style={styles.symbolCell}>
               <Text style={styles.symbolEmojiSpinning}>{sym.emoji}</Text>
             </View>
           ))}
-        </Animated.View>
+        </View>
       ) : (
         /* Stopped View displaying Target Symbol on Center Payline Row */
         <View style={styles.staticReel}>
@@ -122,10 +159,10 @@ const styles = StyleSheet.create({
   reelWindowHighlighted: {
     borderColor: CasinoColors.goldPrimary,
     shadowColor: CasinoColors.goldPrimary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1.0,
+    shadowRadius: 16,
+    elevation: 10,
   },
   centerPaylineOverlay: {
     position: 'absolute',
@@ -183,14 +220,14 @@ const styles = StyleSheet.create({
   symbolEmojiActive: {
     fontSize: 36,
     textShadowColor: CasinoColors.goldPrimary,
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   symbolEmojiMatch: {
     fontSize: 40,
     textShadowColor: '#FFF',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 10,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 18,
   },
   symbolEmojiDimmed: {
     fontSize: 26,

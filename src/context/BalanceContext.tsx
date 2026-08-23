@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import * as Linking from 'expo-linking';
+import {
+  DemoAccount,
+  getDemoAccount,
+  recordScatterGameChange,
+  scatterDeposit,
+  scatterWithdraw,
+} from '@/services/api';
 
 export interface Transaction {
   id: string;
@@ -16,15 +24,39 @@ export interface ToastConfig {
   type: 'success' | 'error' | 'info';
 }
 
+export interface WinModalConfig {
+  visible: boolean;
+  amount: number;
+  title: string;
+  subtitle?: string;
+}
+
+export interface LoseModalConfig {
+  visible: boolean;
+  amount: number;
+  title: string;
+  subtitle?: string;
+}
+
 interface BalanceContextType {
   balance: number;
   formattedBalance: string;
   transactions: Transaction[];
   toast: ToastConfig;
+  winModal: WinModalConfig;
+  loseModal: LoseModalConfig;
+  spinNumber: number;
+  incrementSpinNumber: () => number;
   showToast: (title: string, message: string, type?: 'success' | 'error' | 'info') => void;
   hideToast: () => void;
-  deposit: (amount: number, method?: string) => boolean;
-  withdraw: (amount: number, method?: string) => { success: boolean; message: string };
+  showWinModal: (amount: number, title?: string, subtitle?: string) => void;
+  hideWinModal: () => void;
+  showLoseModal: (amount: number, title?: string, subtitle?: string) => void;
+  hideLoseModal: () => void;
+  notifyLoss: (betAmount: number, label?: string) => void;
+  refreshBalance: () => Promise<void>;
+  deposit: (amount: number, method?: string) => Promise<boolean>;
+  withdraw: (amount: number, method?: string) => Promise<{ success: boolean; message: string }>;
   addSpinReward: (amount: number, rewardLabel: string) => void;
   deductBet: (betAmount: number) => boolean;
   addSlotWinnings: (winningsAmount: number, winLabel: string) => void;
@@ -37,17 +69,13 @@ export const formatCurrency = (val: number): string => {
 };
 
 export const BalanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [balance, setBalance] = useState<number>(1250);
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: 'tx-initial',
-      type: 'deposit',
-      amount: 1250,
-      date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      title: 'Welcome Demo Bonus',
-      paymentMethod: 'Scatter Bonus',
-    },
-  ]);
+  const [balance, setBalance] = useState<number>(0);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [spinNumber, setSpinNumber] = useState<number>(1);
+
+  const applySharedAccount = useCallback((account: DemoAccount) => {
+    setBalance(account.scatter_balance);
+  }, []);
 
   const [toast, setToast] = useState<ToastConfig>({
     visible: false,
@@ -55,6 +83,68 @@ export const BalanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     message: '',
     type: 'info',
   });
+
+  const [winModal, setWinModal] = useState<WinModalConfig>({
+    visible: false,
+    amount: 0,
+    title: 'WIN',
+    subtitle: '',
+  });
+
+  const [loseModal, setLoseModal] = useState<LoseModalConfig>({
+    visible: false,
+    amount: 0,
+    title: 'LOSE',
+    subtitle: '',
+  });
+
+  // Listen for deep link return callbacks from Cash G e-wallet app
+  useEffect(() => {
+    refreshBalance();
+
+    const handleInitialUrl = async () => {
+      const initialUrl = await Linking.getInitialURL();
+      if (initialUrl) parseDeepLinkCallback(initialUrl);
+    };
+
+    handleInitialUrl();
+
+    const subscription = Linking.addEventListener('url', (event) => {
+      parseDeepLinkCallback(event.url);
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  const refreshBalance = useCallback(async () => {
+    const account = await getDemoAccount();
+    applySharedAccount(account);
+  }, [applySharedAccount]);
+
+  const parseDeepLinkCallback = (url: string) => {
+    try {
+      const parsed = Linking.parse(url);
+      const query = parsed.queryParams;
+
+      if (query) {
+        const rawAmount = query.amount || query.amt;
+        if (rawAmount) {
+          const amt = parseFloat(rawAmount as string);
+          if (!isNaN(amt) && amt > 0) {
+            deposit(amt, 'Cash G E-Wallet');
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Error parsing return deep link:', e);
+    }
+  };
+
+  const incrementSpinNumber = (): number => {
+    const current = spinNumber;
+    setSpinNumber((prev) => prev + 1);
+    return current;
+  };
 
   const showToast = (title: string, message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setToast({ visible: true, title, message, type });
@@ -64,30 +154,73 @@ export const BalanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setToast((prev) => ({ ...prev, visible: false }));
   };
 
-  const deposit = (amount: number, method: string = 'Cash G'): boolean => {
+  const showWinModal = (amount: number, title: string = 'WIN', subtitle: string = '') => {
+    setWinModal({
+      visible: true,
+      amount,
+      title,
+      subtitle,
+    });
+  };
+
+  const hideWinModal = () => {
+    setWinModal((prev) => ({ ...prev, visible: false }));
+  };
+
+  const showLoseModal = (amount: number, title: string = 'LOSE', subtitle: string = '') => {
+    setLoseModal({
+      visible: true,
+      amount,
+      title,
+      subtitle,
+    });
+  };
+
+  const hideLoseModal = () => {
+    setLoseModal((prev) => ({ ...prev, visible: false }));
+  };
+
+  const notifyLoss = (betAmount: number, label: string = 'NO MATCH') => {
+    showLoseModal(betAmount, 'LOSE', label);
+  };
+
+  const deposit = async (amount: number, method: string = 'Cash G'): Promise<boolean> => {
     if (amount <= 0) return false;
-    const newBal = balance + amount;
-    setBalance(newBal);
+
+    const res = method === 'Cash G' || method === 'Cash G E-Wallet'
+      ? await scatterDeposit(amount)
+      : { success: true };
+
+    if (!res.success) {
+      showToast('Deposit Failed', res.error || 'Could not deposit from Cash G.', 'error');
+      return false;
+    }
+
+    if (res.account) {
+      applySharedAccount(res.account);
+    } else {
+      setBalance((prev) => prev + amount);
+    }
 
     const newTx: Transaction = {
       id: `tx-${Date.now()}`,
       type: 'deposit',
       amount,
       date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      title: 'Demo Deposit',
+      title: 'Deposit',
       paymentMethod: method,
     };
 
     setTransactions((prev) => [newTx, ...prev]);
     showToast(
       '✓ Deposit Successful',
-      `₱${amount.toLocaleString()} has been deposited to your demo account.`,
+      `₱${amount.toLocaleString()} has been deposited to your account.`,
       'success'
     );
     return true;
   };
 
-  const withdraw = (amount: number, method: string = 'Cash G'): { success: boolean; message: string } => {
+  const withdraw = async (amount: number, method: string = 'Cash G'): Promise<{ success: boolean; message: string }> => {
     if (amount <= 0) {
       showToast('Error', 'Please select a withdrawal amount.', 'error');
       return { success: false, message: 'Please select a withdrawal amount.' };
@@ -95,29 +228,41 @@ export const BalanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     if (amount > balance) {
       showToast(
-        'Insufficient Demo Balance',
-        'You don\'t have enough demo coins for this withdrawal.',
+        'Insufficient Balance',
+        'You don\'t have enough coins for this withdrawal.',
         'error'
       );
-      return { success: false, message: 'Insufficient demo balance.' };
+      return { success: false, message: 'Insufficient balance.' };
     }
 
-    const newBal = balance - amount;
-    setBalance(newBal);
+    const res = method === 'Cash G' || method === 'Cash G E-Wallet'
+      ? await scatterWithdraw(amount)
+      : { success: true };
+
+    if (!res.success) {
+      showToast('Withdrawal Failed', res.error || 'Could not transfer money to Cash G.', 'error');
+      return { success: false, message: res.error || 'Withdrawal failed.' };
+    }
+
+    if (res.account) {
+      applySharedAccount(res.account);
+    } else {
+      setBalance((prev) => prev - amount);
+    }
 
     const newTx: Transaction = {
       id: `tx-${Date.now()}`,
       type: 'withdraw',
       amount,
       date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      title: 'Demo Withdrawal',
+      title: 'Withdrawal',
       paymentMethod: method,
     };
 
     setTransactions((prev) => [newTx, ...prev]);
     showToast(
       '✓ Withdrawal Successful',
-      `₱${amount.toLocaleString()} has been withdrawn from your demo account.`,
+      `₱${amount.toLocaleString()} has been withdrawn from your account.`,
       'success'
     );
     return { success: true, message: `₱${amount} withdrawn` };
@@ -126,6 +271,7 @@ export const BalanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const addSpinReward = (amount: number, rewardLabel: string) => {
     if (amount > 0) {
       setBalance((prev) => prev + amount);
+      recordScatterGameChange(amount, 'credit', `Lucky Spin: ${rewardLabel}`, 'spin_win');
       const newTx: Transaction = {
         id: `tx-${Date.now()}`,
         type: 'spin_win',
@@ -134,13 +280,9 @@ export const BalanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         title: `Lucky Spin: ${rewardLabel}`,
       };
       setTransactions((prev) => [newTx, ...prev]);
-      showToast(
-        '🎉 Lucky Spin Win!',
-        `Congratulations! You won ${rewardLabel} (₱${amount.toLocaleString()}) added to your demo balance!`,
-        'success'
-      );
+      showWinModal(amount, 'WIN', `LUCKY SPIN: ${rewardLabel}`);
     } else {
-      showToast('Lucky Spin Result', `${rewardLabel}! Spin again to win demo rewards!`, 'info');
+      showToast('Lucky Spin Result', `${rewardLabel}! Spin again to win rewards!`, 'info');
     }
   };
 
@@ -149,20 +291,22 @@ export const BalanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     if (betAmount > balance) {
       showToast(
-        'Insufficient Demo Balance',
-        'You don\'t have enough demo balance for this bet.',
+        'Insufficient Balance',
+        'You don\'t have enough balance for this bet.',
         'error'
       );
       return false;
     }
 
     setBalance((prev) => prev - betAmount);
+    recordScatterGameChange(betAmount, 'debit', 'Bet Placed', 'bet_deduct');
     return true;
   };
 
   const addSlotWinnings = (winningsAmount: number, winLabel: string) => {
     if (winningsAmount > 0) {
       setBalance((prev) => prev + winningsAmount);
+      recordScatterGameChange(winningsAmount, 'credit', `Slot Win: ${winLabel}`, 'spin_win');
       const newTx: Transaction = {
         id: `tx-${Date.now()}`,
         type: 'spin_win',
@@ -171,11 +315,8 @@ export const BalanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         title: `Slot Win: ${winLabel}`,
       };
       setTransactions((prev) => [newTx, ...prev]);
-      showToast(
-        '🎉 Slot Machine Win!',
-        `YOU WON ₱${winningsAmount.toLocaleString()}! (${winLabel})`,
-        'success'
-      );
+      const isJackpot = winLabel.toUpperCase().includes('JACKPOT');
+      showWinModal(winningsAmount, isJackpot ? 'JACKPOT' : 'WIN', winLabel);
     }
   };
 
@@ -186,8 +327,18 @@ export const BalanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         formattedBalance: formatCurrency(balance),
         transactions,
         toast,
+        winModal,
+        loseModal,
+        spinNumber,
+        incrementSpinNumber,
         showToast,
         hideToast,
+        showWinModal,
+        hideWinModal,
+        showLoseModal,
+        hideLoseModal,
+        notifyLoss,
+        refreshBalance,
         deposit,
         withdraw,
         addSpinReward,

@@ -16,7 +16,7 @@ export const SLOT_SYMBOLS: SlotSymbol[] = [
   { id: 'clover', emoji: '🍀', name: 'Clover', color: '#10B981' },
 ];
 
-export const PRESET_BETS = [10, 20, 50, 100, 200, 500];
+export const PRESET_BETS = [50, 100, 200, 500];
 
 export type WinType = 'JACKPOT' | 'WIN' | 'NO MATCH';
 

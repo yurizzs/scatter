@@ -16,7 +16,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodCardProps> = ({
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Payment Method</Text>
-      <Text style={styles.subHint}>Fictional demo payment options only</Text>
+      <Text style={styles.subHint}>Select preferred payment option</Text>
 
       <View style={styles.cardsRow}>
         {PAYMENT_METHODS.map((method) => {
@@ -33,7 +33,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodCardProps> = ({
               activeOpacity={0.8}
             >
               <View style={[styles.iconWrap, { backgroundColor: `${method.color}22` }]}>
-                <Ionicons name={method.iconName as any} size={24} color={method.color} />
+                <Ionicons name={method.iconName as any} size={28} color={method.color} />
               </View>
 
               <Text style={styles.methodName}>{method.name}</Text>
@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
   },
   cardsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
   methodCard: {
@@ -92,9 +93,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
@@ -111,9 +112,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   radioCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 1.5,
     borderColor: CasinoColors.borderEmerald,
     alignItems: 'center',

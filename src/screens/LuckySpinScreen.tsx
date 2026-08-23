@@ -6,6 +6,7 @@ import { SlotMachine } from '@/components/SlotMachine';
 import { BetSelector } from '@/components/BetSelector';
 import { WinResultDisplay } from '@/components/WinResultDisplay';
 import { SlotResult, PRESET_BETS } from '@/constants/SlotData';
+import { getPatternStepForSpin, SpinPatternStep } from '@/constants/SpinPattern';
 import { CasinoColors } from '@/constants/CasinoTheme';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -15,10 +16,11 @@ interface LuckySpinScreenProps {
 }
 
 export const LuckySpinScreen: React.FC<LuckySpinScreenProps> = ({ onBack, onOpenDeposit }) => {
-  const { balance, formattedBalance, deductBet, addSlotWinnings, showToast } = useBalance();
+  const { balance, formattedBalance, deductBet, addSlotWinnings, notifyLoss, spinNumber, incrementSpinNumber, showToast } = useBalance();
   const [selectedBet, setSelectedBet] = useState<number>(50);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [lastResult, setLastResult] = useState<SlotResult | null>(null);
+  const [currentPatternStep, setCurrentPatternStep] = useState<SpinPatternStep>(getPatternStepForSpin(1));
 
   // Automatically adjust bet down if current balance drops below selected bet
   useEffect(() => {
@@ -33,20 +35,35 @@ export const LuckySpinScreen: React.FC<LuckySpinScreenProps> = ({ onBack, onOpen
   const handleStartSpin = () => {
     if (isSpinning) return;
 
+    if (balance === 0) {
+      showToast(
+        'Deposit Required',
+        'Your balance is ₱0.00. Please deposit at least ₱100 to start playing!',
+        'error'
+      );
+      onOpenDeposit();
+      return;
+    }
+
     if (balance < selectedBet) {
       showToast(
-        'Insufficient Demo Balance',
-        'You don\'t have enough demo balance for this bet. Reduce your bet or deposit demo funds.',
+        'Insufficient Balance',
+        'You don\'t have enough balance for this bet. Reduce your bet or add funds.',
         'error'
       );
       return;
     }
 
-    // 1. Deduct bet immediately ONCE per spin
+    // 1. Get exact pattern outcome for this spin index
+    const step = getPatternStepForSpin(spinNumber);
+    setCurrentPatternStep(step);
+    incrementSpinNumber();
+
+    // 2. Deduct bet immediately ONCE per spin
     const success = deductBet(selectedBet);
     if (!success) return;
 
-    // 2. Start 2-second continuous spinning reels
+    // 3. Start 2-second continuous spinning reels
     setLastResult(null);
     setIsSpinning(true);
   };
@@ -55,11 +72,13 @@ export const LuckySpinScreen: React.FC<LuckySpinScreenProps> = ({ onBack, onOpen
     setLastResult(result);
     setIsSpinning(false);
 
-    // 3. Add winnings only for 3 or 4 matches (no money returned for <= 2 matches)
+    // 4. Add winnings for 3 or 4 matches, or trigger Loss modal for NO_WIN
     if (result.winType === 'JACKPOT') {
-      addSlotWinnings(result.winnings, 'JACKPOT (4 Matches)');
+      addSlotWinnings(result.winnings, 'JACKPOT');
     } else if (result.winType === 'WIN') {
-      addSlotWinnings(result.winnings, 'WIN (3 Matches)');
+      addSlotWinnings(result.winnings, 'SLOT WIN');
+    } else {
+      notifyLoss(selectedBet, 'NO MATCHING SYMBOLS');
     }
   };
 
@@ -69,7 +88,7 @@ export const LuckySpinScreen: React.FC<LuckySpinScreenProps> = ({ onBack, onOpen
         {/* Navigation Header Bar */}
         <View style={styles.navBar}>
           <TouchableOpacity style={styles.backButton} onPress={onBack} disabled={isSpinning}>
-            <Ionicons name="arrow-back" size={22} color={CasinoColors.goldPrimary} />
+            <Ionicons name="arrow-back" size={20} color={CasinoColors.goldPrimary} />
             <Text style={styles.backText}>HOME</Text>
           </TouchableOpacity>
 
@@ -80,17 +99,17 @@ export const LuckySpinScreen: React.FC<LuckySpinScreenProps> = ({ onBack, onOpen
             onPress={onOpenDeposit}
             disabled={isSpinning}
           >
-            <Ionicons name="add" size={16} color={CasinoColors.bgDarkest} />
+            <Ionicons name="add" size={15} color={CasinoColors.bgDarkest} />
             <Text style={styles.depositSmallText}>FUNDS</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Demo Balance Card Header */}
+        {/* Balance Card Header */}
         <View style={styles.balanceCard}>
           <View style={styles.balanceRow}>
-            <Ionicons name="wallet-sharp" size={26} color={CasinoColors.goldPrimary} />
+            <Ionicons name="wallet-sharp" size={24} color={CasinoColors.goldPrimary} />
             <View style={{ marginLeft: 12 }}>
-              <Text style={styles.balanceHeaderLabel}>DEMO BALANCE</Text>
+              <Text style={styles.balanceHeaderLabel}>BALANCE</Text>
               <Text style={styles.balanceValueText}>{formattedBalance}</Text>
             </View>
           </View>
@@ -101,6 +120,7 @@ export const LuckySpinScreen: React.FC<LuckySpinScreenProps> = ({ onBack, onOpen
           <SlotMachine
             isSpinning={isSpinning}
             betAmount={selectedBet}
+            targetOutcome={currentPatternStep.outcome}
             onSpinFinish={handleSpinFinish}
           />
         </View>
@@ -123,7 +143,7 @@ export const LuckySpinScreen: React.FC<LuckySpinScreenProps> = ({ onBack, onOpen
           >
             <Text style={styles.spinButtonText}>{isSpinning ? 'SPINNING...' : 'SPIN'}</Text>
             {!isSpinning && (
-              <Ionicons name="play" size={20} color={CasinoColors.bgDarkest} style={{ marginLeft: 6 }} />
+              <Ionicons name="play" size={18} color={CasinoColors.bgDarkest} style={{ marginLeft: 6 }} />
             )}
           </TouchableOpacity>
         </View>

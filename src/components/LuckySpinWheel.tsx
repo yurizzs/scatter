@@ -72,8 +72,8 @@ export const LuckySpinWheel: React.FC<LuckySpinWheelProps> = ({ onSpinEnd }) => 
 
     Animated.timing(spinValue, {
       toValue: totalRotation,
-      duration: 4500,
-      easing: Easing.out(Easing.cubic),
+      duration: 5000,
+      easing: Easing.bezier(0.2, 0.8, 0.25, 1),
       useNativeDriver: true,
     }).start(() => {
       setLastAngle(totalRotation);

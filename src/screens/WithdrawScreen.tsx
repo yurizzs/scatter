@@ -17,7 +17,7 @@ export const WithdrawScreen: React.FC<WithdrawScreenProps> = ({ onBack }) => {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(PAYMENT_METHODS[0]);
 
-  const handleWithdrawSubmit = () => {
+  const handleWithdrawSubmit = async () => {
     if (selectedAmount === null) {
       showToast('No Amount Selected', 'Please select a withdrawal amount.', 'error');
       return;
@@ -25,14 +25,14 @@ export const WithdrawScreen: React.FC<WithdrawScreenProps> = ({ onBack }) => {
 
     if (selectedAmount > balance) {
       showToast(
-        'Insufficient Demo Balance',
-        'You cannot withdraw more than your available demo balance.',
+        'Insufficient Balance',
+        'You cannot withdraw more than your available balance.',
         'error'
       );
       return;
     }
 
-    const res = withdraw(selectedAmount, selectedMethod.name);
+    const res = await withdraw(selectedAmount, selectedMethod.name);
     if (res.success) {
       onBack();
     }
@@ -40,7 +40,7 @@ export const WithdrawScreen: React.FC<WithdrawScreenProps> = ({ onBack }) => {
 
   const handleSelectAmount = (amt: number) => {
     if (amt > balance) {
-      showToast('Insufficient Demo Balance', `₱${amt.toLocaleString()} exceeds your available demo balance.`, 'error');
+      showToast('Insufficient Balance', `₱${amt.toLocaleString()} exceeds your available balance.`, 'error');
     } else {
       setSelectedAmount(amt);
     }
@@ -52,18 +52,18 @@ export const WithdrawScreen: React.FC<WithdrawScreenProps> = ({ onBack }) => {
         {/* Navigation Header */}
         <View style={styles.navBar}>
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
-            <Ionicons name="arrow-back" size={22} color={CasinoColors.goldPrimary} />
+            <Ionicons name="arrow-back" size={18} color={CasinoColors.goldPrimary} />
             <Text style={styles.backText}>BACK</Text>
           </TouchableOpacity>
           <Text style={styles.screenTitle}>WITHDRAW</Text>
           <View style={{ width: 60 }} />
         </View>
 
-        {/* Available Demo Balance Header Card */}
+        {/* Available Balance Header Card */}
         <View style={styles.balanceHeaderCard}>
-          <Text style={styles.cardSubLabel}>AVAILABLE DEMO BALANCE</Text>
+          <Text style={styles.cardSubLabel}>AVAILABLE BALANCE</Text>
           <Text style={styles.balanceValueText}>{formattedBalance}</Text>
-          <Text style={styles.withdrawNotice}>Minimum withdrawal: ₱200 | Maximum: ₱10,000</Text>
+          <Text style={styles.withdrawNotice}>Minimum withdrawal: ₱100 | Maximum: ₱10,000</Text>
         </View>
 
         {/* Selected Withdrawal Amount Card */}
@@ -99,7 +99,7 @@ export const WithdrawScreen: React.FC<WithdrawScreenProps> = ({ onBack }) => {
             activeOpacity={0.85}
           >
             <Text style={styles.withdrawSubmitText}>WITHDRAW</Text>
-            <Ionicons name="arrow-forward" size={18} color={CasinoColors.bgDarkest} style={{ marginLeft: 6 }} />
+            <Ionicons name="arrow-forward" size={15} color={CasinoColors.bgDarkest} style={{ marginLeft: 6 }} />
           </TouchableOpacity>
         </View>
       </ScrollView>

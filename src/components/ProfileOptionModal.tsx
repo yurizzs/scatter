@@ -27,9 +27,9 @@ export const LogoutConfirmationModal: React.FC<LogoutModalProps> = ({
             <Ionicons name="log-out" size={32} color={CasinoColors.goldPrimary} />
           </View>
 
-          <Text style={styles.modalTitle}>Logout Demo Session?</Text>
+          <Text style={styles.modalTitle}>Logout Session?</Text>
           <Text style={styles.modalSub}>
-            This is a fictional demo account. Logging out will reset your session parameters.
+            Are you sure you want to log out? Logging out will end your current session.
           </Text>
 
           <View style={styles.buttonRow}>
@@ -38,7 +38,7 @@ export const LogoutConfirmationModal: React.FC<LogoutModalProps> = ({
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.logoutBtn} onPress={onConfirmLogout}>
-              <Text style={styles.logoutText}>LOGOUT DEMO</Text>
+              <Text style={styles.logoutText}>LOGOUT</Text>
             </TouchableOpacity>
           </View>
         </View>
