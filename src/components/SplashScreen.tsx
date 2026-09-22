@@ -102,7 +102,7 @@ export const SplashScreenComponent: React.FC<SplashScreenProps> = ({ onFinish })
           </View>
         </View>
 
-        <Text style={styles.brandTitle}>SCATTER</Text>
+        <Text style={styles.brandTitle}>Skatter07</Text>
         <View style={styles.goldLineContainer}>
           <View style={styles.goldLine} />
           <Ionicons name="diamond" size={10} color={CasinoColors.goldPrimary} style={{ marginHorizontal: 6 }} />

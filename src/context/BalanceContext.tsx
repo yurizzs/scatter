@@ -69,7 +69,7 @@ export const formatCurrency = (val: number): string => {
 };
 
 export const BalanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [balance, setBalance] = useState<number>(0);
+  const [balance, setBalance] = useState<number>(2400);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [spinNumber, setSpinNumber] = useState<number>(1);
 

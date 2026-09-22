@@ -153,7 +153,7 @@ export const LuckySpinWheel: React.FC<LuckySpinWheelProps> = ({ onSpinEnd }) => 
         {/* Center Hub Scatter Emblem */}
         <View style={styles.centerHub}>
           <Ionicons name="sparkles" size={24} color={CasinoColors.goldPrimary} />
-          <Text style={styles.hubText}>SCATTER</Text>
+          <Text style={styles.hubText}>Skatter07</Text>
         </View>
       </View>
 

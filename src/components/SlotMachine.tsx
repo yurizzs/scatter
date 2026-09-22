@@ -97,7 +97,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
       {/* Top Header Marquee */}
       <View style={styles.marqueeHeader}>
         <Ionicons name="sparkles" size={16} color={CasinoColors.goldPrimary} />
-        <Text style={styles.marqueeText}>SCATTER LUCKY SPIN</Text>
+        <Text style={styles.marqueeText} numberOfLines={1} adjustsFontSizeToFit>Skatter07 LUCKY SPIN</Text>
         <Ionicons name="sparkles" size={16} color={CasinoColors.goldPrimary} />
       </View>
 

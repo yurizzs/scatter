@@ -15,7 +15,7 @@ export const GameCarousel: React.FC<GameCarouselProps> = ({ onSelectGame }) => {
       <View style={styles.headerRow}>
         <View style={styles.titleWithIcon}>
           <Ionicons name="flame" size={20} color={CasinoColors.goldPrimary} />
-          <Text style={styles.sectionTitle}>SCATTER GAMES</Text>
+          <Text style={styles.sectionTitle}>Skatter07 GAMES</Text>
         </View>
         <Text style={styles.scrollHint}>Swipe to view all</Text>
       </View>

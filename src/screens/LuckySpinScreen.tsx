@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBalance } from '@/context/BalanceContext';
 import { SlotMachine } from '@/components/SlotMachine';
@@ -21,6 +21,8 @@ export const LuckySpinScreen: React.FC<LuckySpinScreenProps> = ({ onBack, onOpen
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [lastResult, setLastResult] = useState<SlotResult | null>(null);
   const [currentPatternStep, setCurrentPatternStep] = useState<SpinPatternStep>(getPatternStepForSpin(1));
+  const { width } = useWindowDimensions();
+  const isSmallDevice = width < 380;
 
   // Automatically adjust bet down if current balance drops below selected bet
   useEffect(() => {
@@ -92,7 +94,18 @@ export const LuckySpinScreen: React.FC<LuckySpinScreenProps> = ({ onBack, onOpen
             <Text style={styles.backText}>HOME</Text>
           </TouchableOpacity>
 
-          <Text style={styles.screenTitle}>LUCKY SPIN</Text>
+          <View style={[styles.headerTitleWrap, isSmallDevice && { flexShrink: 1, marginHorizontal: 4 }]}>
+            <View style={[styles.miniLogo, isSmallDevice && { width: 20, height: 20, marginRight: 4 }]}>
+              <Ionicons name="sparkles" size={isSmallDevice ? 11 : 14} color={CasinoColors.goldPrimary} />
+            </View>
+            <Text
+              style={[styles.screenTitle, isSmallDevice && { fontSize: 14, letterSpacing: 1 }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              LUCKY SPIN
+            </Text>
+          </View>
 
           <TouchableOpacity
             style={styles.depositSmallBtn}
@@ -212,11 +225,30 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginLeft: 4,
   },
+  headerTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniLogo: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: CasinoColors.bgCardElevated,
+    borderWidth: 1,
+    borderColor: CasinoColors.goldPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
+  },
   screenTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: CasinoColors.goldPrimary,
-    letterSpacing: 2,
+    letterSpacing: 1.5,
+    lineHeight: Platform.OS === 'ios' ? 22 : 24,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   depositSmallBtn: {
     flexDirection: 'row',

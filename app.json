@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "scatter",
+    "name": "Skatter07",
     "slug": "scatter",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,7 +8,11 @@
     "scheme": "scatter",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.eyerizz.scatter",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "usesCleartextTraffic": true,
@@ -31,7 +35,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/android-icon-foreground.png",
           "imageWidth": 76
         }
       ],
@@ -51,8 +55,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "db642351-3e98-43ef-bc61-9cea66210184"
+        "projectId": "25d586f9-be22-4960-bf55-8f40ddad2b01"
       }
-    }
+    },
+    "owner": "irizz"
   }
 }

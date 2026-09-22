@@ -10,26 +10,22 @@ export interface SpinPatternStep {
 }
 
 export const FIXED_SPIN_PATTERN: SpinPatternStep[] = [
-  // spin 1 - 2 = win 100 to 250
-  { spinIndex: 1, outcome: 'WIN', label: 'Spin 1: Win', description: 'Win (100 -> 175)' },
-  { spinIndex: 2, outcome: 'WIN', label: 'Spin 2: Win', description: 'Win (175 -> 250)' },
+  // spin 1 - 2 = lose, spin 3 = jackpot, spin 4 = lose
+  { spinIndex: 1, outcome: 'LOSE', label: 'Spin 1: Lose', description: 'Lose' },
+  { spinIndex: 2, outcome: 'LOSE', label: 'Spin 2: Lose', description: 'Lose' },
+  { spinIndex: 3, outcome: 'JACKPOT', label: 'Spin 3: Jackpot!', description: 'Jackpot!' },
+  { spinIndex: 4, outcome: 'LOSE', label: 'Spin 4: Lose', description: 'Lose' },
 
-  // spin 3 = win 250 to 500
-  { spinIndex: 3, outcome: 'WIN', label: 'Spin 3: Big Win', description: 'Win (250 -> 500)' },
+  // spin 5 - 6 = lose
+  { spinIndex: 5, outcome: 'LOSE', label: 'Spin 5: Lose', description: 'Lose' },
+  { spinIndex: 6, outcome: 'LOSE', label: 'Spin 6: Lose', description: 'Lose' },
 
-  // spin 4 = win 500 to 1000
-  { spinIndex: 4, outcome: 'JACKPOT', label: 'Spin 4: Jackpot!', description: 'Jackpot (500 -> 1,000)' },
+  // spin 7 = win
+  { spinIndex: 7, outcome: 'WIN', label: 'Spin 7: Win', description: 'Win' },
 
-  // spin 5 = lose 1000 to 600
-  { spinIndex: 5, outcome: 'LOSE', label: 'Spin 5: Lose', description: 'Lose (1,000 -> 600)' },
-
-  // spin 6 = win 600 to 750
-  { spinIndex: 6, outcome: 'WIN', label: 'Spin 6: Win', description: 'Win (600 -> 750)' },
-
-  // spin 7 - 9 = lose 750 to 300
-  { spinIndex: 7, outcome: 'LOSE', label: 'Spin 7: Lose', description: 'Lose (750 -> 600)' },
-  { spinIndex: 8, outcome: 'LOSE', label: 'Spin 8: Lose', description: 'Lose (600 -> 450)' },
-  { spinIndex: 9, outcome: 'LOSE', label: 'Spin 9: Lose', description: 'Lose (450 -> 300)' },
+  // spin 8 = lose
+  { spinIndex: 8, outcome: 'LOSE', label: 'Spin 8: Lose', description: 'Lose' },
+  { spinIndex: 9, outcome: 'LOSE', label: 'Spin 9: Lose', description: 'Lose' },
 
   // spin 10 = win 300 to 500
   { spinIndex: 10, outcome: 'WIN', label: 'Spin 10: Win', description: 'Win (300 -> 500)' },

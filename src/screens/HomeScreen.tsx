@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Platform, Animated, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Platform, Animated, ScrollView, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBalance } from '@/context/BalanceContext';
 import { SCATTER_GAMES, GameItem } from '@/constants/GameData';
@@ -161,6 +161,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 }) => {
   const { balance, formattedBalance, showToast } = useBalance();
   const [selectedGameId, setSelectedGameId] = useState<string>('lucky-spin');
+  const { width } = useWindowDimensions();
+  const isSmallDevice = width < 380;
+  const isVerySmallDevice = width < 340;
 
   const handleSelectGame = (game: GameItem) => {
     setSelectedGameId(game.id);
@@ -190,22 +193,30 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <View style={styles.container}>
           {/* Top Header Bar */}
           <View style={styles.headerBar}>
-            <View style={styles.brandGroup}>
+            {/* Profile Button / Left Action */}
+            <TouchableOpacity style={styles.profileHeaderBtn} onPress={onOpenProfile} activeOpacity={0.8}>
+              <Ionicons name="person-circle-sharp" size={24} color={CasinoColors.goldPrimary} />
+            </TouchableOpacity>
+
+            {/* Centered App Logo & Title - Perfectly Centered */}
+            <View style={styles.centeredBrandGroup} pointerEvents="none">
               <View style={styles.miniLogo}>
-                <Ionicons name="sparkles" size={18} color={CasinoColors.goldPrimary} />
+                <Ionicons name="sparkles" size={13} color={CasinoColors.goldPrimary} />
               </View>
-              <Text style={styles.brandText}>SCATTER</Text>
+              <Text style={styles.brandText} numberOfLines={1}>
+                Skatter07
+              </Text>
             </View>
 
-            {/* Shared Balance Badge */}
+            {/* Shared Balance Badge - Compact & Sleek */}
             <TouchableOpacity style={styles.balanceBadge} onPress={onOpenProfile} activeOpacity={0.8}>
-              <Ionicons name="wallet-sharp" size={15} color={CasinoColors.goldPrimary} />
+              <Ionicons name="wallet-sharp" size={11} color={CasinoColors.goldPrimary} />
               <View style={styles.balanceTextWrap}>
                 <Text style={styles.balanceLabel}>BALANCE</Text>
                 <Text style={styles.balanceAmount}>{formattedBalance}</Text>
               </View>
               <View style={styles.addPlusBtn}>
-                <Ionicons name="add" size={14} color={CasinoColors.bgDarkest} />
+                <Ionicons name="add" size={10} color={CasinoColors.bgDarkest} />
               </View>
             </TouchableOpacity>
           </View>
@@ -281,34 +292,56 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'android' ? 8 : 0,
   },
   headerBar: {
+    height: 52,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
     borderBottomColor: CasinoColors.borderEmerald,
+    position: 'relative',
   },
-  brandGroup: {
+  profileHeaderBtn: {
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+    width: 32,
+  },
+  centeredBrandGroup: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
   },
   miniLogo: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 24,
+    height: 24,
+    borderRadius: 6,
     backgroundColor: CasinoColors.bgCardElevated,
     borderWidth: 1,
     borderColor: CasinoColors.goldPrimary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+    marginRight: 5,
+    shadowColor: CasinoColors.goldPrimary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 3,
   },
   brandText: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: '900',
     color: CasinoColors.goldPrimary,
-    letterSpacing: 2,
+    letterSpacing: 1.5,
+    lineHeight: Platform.OS === 'ios' ? 20 : 22,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   balanceBadge: {
     flexDirection: 'row',
@@ -316,28 +349,31 @@ const styles = StyleSheet.create({
     backgroundColor: CasinoColors.bgCardElevated,
     borderWidth: 1,
     borderColor: CasinoColors.goldPrimary,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 14,
+    zIndex: 2,
   },
   balanceTextWrap: {
-    marginHorizontal: 8,
+    marginHorizontal: 4,
   },
   balanceLabel: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: '700',
     color: CasinoColors.textMuted,
     letterSpacing: 0.5,
+    lineHeight: 8,
   },
   balanceAmount: {
-    fontSize: 12.5,
+    fontSize: 10.5,
     fontWeight: '800',
     color: CasinoColors.goldPrimary,
+    lineHeight: 12,
   },
   addPlusBtn: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: CasinoColors.goldPrimary,
     alignItems: 'center',
     justifyContent: 'center',

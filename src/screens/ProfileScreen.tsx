@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useBalance } from '@/context/BalanceContext';
 import { LogoutConfirmationModal } from '@/components/ProfileOptionModal';
 import { CasinoColors } from '@/constants/CasinoTheme';
+import { useBalance } from '@/context/BalanceContext';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface ProfileScreenProps {
   onOpenDeposit: () => void;
@@ -32,7 +32,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header Bar */}
         <View style={styles.headerBar}>
-          <Text style={styles.screenTitle}>MY PROFILE</Text>
+          <View style={styles.headerTitleWrap}>
+            <View style={styles.miniLogo}>
+              <Ionicons name="sparkles" size={14} color={CasinoColors.goldPrimary} />
+            </View>
+            <Text style={styles.screenTitle}>MY PROFILE</Text>
+          </View>
           <View style={styles.vipBadge}>
             <Text style={styles.vipBadgeText}>VIP MEMBER</Text>
           </View>
@@ -49,7 +54,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </View>
           </View>
 
-          <Text style={styles.usernameText}>LuckyPlayer</Text>
+          <Text style={styles.usernameText}>Alex</Text>
 
           <View style={styles.statusRow}>
             <View style={styles.statusDot} />
@@ -101,8 +106,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                       item.type === 'deposit'
                         ? styles.iconDeposit
                         : item.type === 'withdraw'
-                        ? styles.iconWithdraw
-                        : styles.iconWin,
+                          ? styles.iconWithdraw
+                          : styles.iconWin,
                     ]}
                   >
                     <Ionicons
@@ -110,16 +115,16 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         item.type === 'deposit'
                           ? 'arrow-down-sharp'
                           : item.type === 'withdraw'
-                          ? 'arrow-up-sharp'
-                          : 'sparkles-sharp'
+                            ? 'arrow-up-sharp'
+                            : 'sparkles-sharp'
                       }
                       size={14}
                       color={
                         item.type === 'deposit'
                           ? CasinoColors.emeraldAccent
                           : item.type === 'withdraw'
-                          ? CasinoColors.error
-                          : CasinoColors.goldPrimary
+                            ? CasinoColors.error
+                            : CasinoColors.goldPrimary
                       }
                     />
                   </View>
@@ -212,11 +217,30 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: CasinoColors.borderEmerald,
   },
+  headerTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniLogo: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: CasinoColors.bgCardElevated,
+    borderWidth: 1,
+    borderColor: CasinoColors.goldPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
+  },
   screenTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: CasinoColors.goldPrimary,
-    letterSpacing: 2,
+    letterSpacing: 1.5,
+    lineHeight: Platform.OS === 'ios' ? 22 : 24,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   vipBadge: {
     backgroundColor: 'rgba(212, 175, 55, 0.15)',

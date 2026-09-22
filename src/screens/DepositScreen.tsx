@@ -45,7 +45,12 @@ export const DepositScreen: React.FC<DepositScreenProps> = ({ onBack }) => {
             <Ionicons name="arrow-back" size={18} color={CasinoColors.goldPrimary} />
             <Text style={styles.backText}>BACK</Text>
           </TouchableOpacity>
-          <Text style={styles.screenTitle}>DEPOSIT</Text>
+          <View style={styles.headerTitleWrap}>
+            <View style={styles.miniLogo}>
+              <Ionicons name="sparkles" size={14} color={CasinoColors.goldPrimary} />
+            </View>
+            <Text style={styles.screenTitle}>DEPOSIT</Text>
+          </View>
           <View style={{ width: 60 }} />
         </View>
 
@@ -136,11 +141,30 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginLeft: 4,
   },
+  headerTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniLogo: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: CasinoColors.bgCardElevated,
+    borderWidth: 1,
+    borderColor: CasinoColors.goldPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
+  },
   screenTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: CasinoColors.goldPrimary,
-    letterSpacing: 2,
+    letterSpacing: 1.5,
+    lineHeight: Platform.OS === 'ios' ? 22 : 24,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   selectedAmountCard: {
     marginHorizontal: 16,

@@ -3,11 +3,7 @@ import { Platform } from 'react-native';
 const LAN_BACKEND_URL = 'http://192.168.254.108:3001';
 
 const getBackendUrl = () => {
-  if (Platform.OS === 'android') {
-    return LAN_BACKEND_URL;
-  }
-
-  return 'http://localhost:3001';
+  return LAN_BACKEND_URL;
 };
 
 export const API_BASE_URL = getBackendUrl();
@@ -45,7 +41,7 @@ let fallbackAccount: DemoAccount = {
   name: 'Demo User',
   mobile: '09171234567',
   cashg_balance: 100,
-  scatter_balance: 0,
+  scatter_balance: 2400,
   transactions: [],
 };
 
